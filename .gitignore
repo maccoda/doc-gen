@@ -1,0 +1,6 @@
+.vscode/
+
+# docx lock files
+.~lock*
+
+**/__pycache__/
