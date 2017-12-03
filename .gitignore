@@ -5,3 +5,4 @@
 *.docx
 
 **/__pycache__/
+.cache/

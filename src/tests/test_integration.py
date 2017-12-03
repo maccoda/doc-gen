@@ -3,7 +3,6 @@
 import sys
 import os
 from docx import Document
-from docx.text.parfmt import ParagraphFormat
 
 def rel_to_abs_path(relative):
     """Returns the absolute path of the file given as a relative path"""
