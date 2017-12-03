@@ -2,6 +2,10 @@ image: python:latest
 
 before_script:
   - python -V
+  - pip install -U pytest
+  - pytest --version
+  - pip install -U mistune
+  - pip install -U python-docx
 
 test:
   script:
