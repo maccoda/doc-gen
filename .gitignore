@@ -2,5 +2,6 @@
 
 # docx lock files
 .~lock*
+*.docx
 
 **/__pycache__/

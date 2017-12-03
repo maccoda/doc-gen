@@ -2,6 +2,7 @@
 Doc-Gen
 Documentation generator from markdown files.
 """
+import sys
 
 import mistune
 from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text, DocumentElement
@@ -55,15 +56,21 @@ class DocumentBuilder:
         self.document.save(self.name)
 
 
-def main():
+def main(args):
     """Main method taking the markdown file and creating DOCX file"""
-    with open('/home/dmaccora/workspace/Python/doc-gen/tests/test1.md') as in_file:
+
+    if len(args) != 2:
+        raise Exception
+    input_file_name = args[0]
+    output_file_name = args[1]
+
+    with open(input_file_name) as in_file:
         doc_render = IdentityRenderer()
         md = mistune.Markdown(renderer=doc_render)
         result_list = md.output(in_file.read())
 
-        DocumentBuilder('output.docx').create(result_list)
+        DocumentBuilder(output_file_name).create(result_list)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
