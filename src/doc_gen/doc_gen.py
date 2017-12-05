@@ -41,13 +41,18 @@ class IdentityRenderer(mistune.Renderer):
 class DocumentBuilder:
     """Builder of the DOCX document from DocumentElements"""
 
-    def __init__(self, name):
+    def __init__(self, name, templ_name=None):
         self.document = Document()
         self.name = name
+        if templ_name:
+            self.template_doc = Document(templ_name)
+        else:
+            self.template_doc = None
 
     def create(self, elements):
         """Creates and saves a DOCX file from the elements provided"""
-        # The top level items are just the block level items captured
+        if self.template_doc:
+            self._populate_with_template()
         for item in elements:
             if isinstance(item, DocumentElement):
                 item.append_to_document(self.document)
@@ -56,6 +61,14 @@ class DocumentBuilder:
 
         self.document.save(self.name)
 
+    def _populate_with_template(self):
+        """Populates the document with the template content"""
+        for elem in self.template_doc.paragraphs:
+            style_name = elem.style.name
+            style = self.document.styles[style_name]
+            para = self.document.add_paragraph(elem.text)
+            para.style = style
+
 
 def print_help():
     """Print help message"""
@@ -63,10 +76,12 @@ def print_help():
     print("-i,--input\t name of Markdown input file (with file extension)")
     print("-o,--output\t name to write output DOCX file to (with file extension)")
 
+
 def parse_args(args):
     """Parse the provided arguments and return a dictionary of received arguments"""
     try:
-        opts, args = getopt.getopt(args, "hi:o:", ["input", "output", "help"])
+        opts, args = getopt.getopt(
+            args, "hi:o:t:", ["input", "output", "help", "template"])
     except getopt.GetoptError:
         print_help()
         sys.exit(2)
@@ -80,8 +95,11 @@ def parse_args(args):
             returned['input_file'] = arg
         elif opt in ('-o', '--output'):
             returned['output_file'] = arg
+        elif opt in ('-t', '--template'):
+            returned['template_file'] = arg
 
     return returned
+
 
 def get_args(args):
     """Parse and check correct arguments present"""
@@ -91,20 +109,20 @@ def get_args(args):
         print_help()
         sys.exit(2)
 
-    return (parsed['input_file'], parsed['output_file'])
+    return (parsed['input_file'], parsed['output_file'], parsed.get('template_file'))
 
-def main(args):
+
+def main(input_file_name, output_file_name, template_name):
     """Main method taking the markdown file and creating DOCX file"""
-
-    input_file_name, output_file_name = get_args(args)
 
     with open(input_file_name) as in_file:
         doc_render = IdentityRenderer()
         md = mistune.Markdown(renderer=doc_render)
         result_list = md.output(in_file.read())
 
-        DocumentBuilder(output_file_name).create(result_list)
+        DocumentBuilder(output_file_name, template_name).create(result_list)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    input_file_name, output_file_name, template_name = get_args(sys.argv[1:])
+    main(input_file_name, output_file_name, template_name)
