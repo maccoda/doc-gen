@@ -42,7 +42,7 @@ def test_addition_to_template():
     doc_gen.main(in_path, out_path, template_path)
 
     paragraphs = Document(out_path).paragraphs
-    assert len(paragraphs) == 5 + NUM_PARAS_TEST1
+    assert len(paragraphs) == 7 + NUM_PARAS_TEST1
     # Template document
     assert_heading(paragraphs[0], 'Template Heading', 'Heading 1')
     assert_heading(paragraphs[1], 'References', 'Heading 2')
@@ -52,6 +52,11 @@ def test_addition_to_template():
 
     # Added content asserts
     assertions_of_test1md(paragraphs, 5)
+
+    # Template after content
+    assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 0],
+                   'Post Content Information', 'Heading 2')
+    assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 1], 'Finishing Touches', 'Heading 3')
 
     # Clean up
     os.remove(template_path)
@@ -78,6 +83,7 @@ def assertions_of_test1md(paragraphs, start_index):
     assert_text_runs(paragraphs[start_index + 2], 'Some paragraph text with bold and italics.', [
                      DEF_STYLE, 'bold', DEF_STYLE, 'italic', DEF_STYLE])
 
+
 def generate_template_document():
     """Generates a mock template DOCX document. Returning the file name"""
     document = Document()
@@ -86,6 +92,8 @@ def generate_template_document():
     document.add_paragraph('Reference 1 - Something')
     document.add_paragraph('Reference 2 - Another thing')
     document.add_heading('Content', 2)
+    document.add_heading('Post Content Information', 2)
+    document.add_heading('Finishing Touches', 3)
 
     doc_name = './Template.docx'
     document.save(doc_name)

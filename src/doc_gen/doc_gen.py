@@ -44,20 +44,34 @@ class DocumentBuilder:
     def __init__(self, name, templ_name=None):
         self.document = Document()
         self.name = name
+        self.elements = {}
         if templ_name:
             self.template_doc = Document(templ_name)
         else:
             self.template_doc = None
 
-    def create(self, elements):
-        """Creates and saves a DOCX file from the elements provided"""
+    def add_elements(self, key, elements):
+        """Adds the provided DocumentElements to the provided key"""
+        self.elements[key] = elements
+
+    def create(self):
+        """
+        Creates and saves a DOCX file from its current elements adding them to
+        when their appropriate heading is reached. If no template was provided
+        it will simply generate the content onto a blank document.
+
+        TODO How will it function when no template is there and there are
+        multiple element lists???
+        """
         if self.template_doc:
             self._populate_with_template()
-        for item in elements:
-            if isinstance(item, DocumentElement):
-                item.append_to_document(self.document)
-            else:
-                raise Exception
+        # HACK for non-template scenario
+        else:
+            for item in self.elements['Content']:
+                if isinstance(item, DocumentElement):
+                    item.append_to_document(self.document)
+                else:
+                    raise Exception
 
         self.document.save(self.name)
 
@@ -68,6 +82,13 @@ class DocumentBuilder:
             style = self.document.styles[style_name]
             para = self.document.add_paragraph(elem.text)
             para.style = style
+            # Check if should add under this
+            if elem.text in self.elements:
+                for item in self.elements[elem.text]:
+                    if isinstance(item, DocumentElement):
+                        item.append_to_document(self.document)
+                    else:
+                        raise Exception
 
 
 def print_help():
@@ -120,7 +141,13 @@ def main(input_file_name, output_file_name, template_name):
         md = mistune.Markdown(renderer=doc_render)
         result_list = md.output(in_file.read())
 
-        DocumentBuilder(output_file_name, template_name).create(result_list)
+        doc_builder = DocumentBuilder(output_file_name, template_name)
+        # Attempted future proofing of the heading to use being the key
+        # provided.
+        doc_builder.add_elements('Content', result_list)
+
+        doc_builder.create()
+
 
 
 if __name__ == '__main__':
