@@ -7,8 +7,11 @@ mappings to the DOCX types
 class DocumentElement:
     """Single DOCX document element. Capable of appending itself to a document"""
 
-    def append_to_document(self, document):
-        """Append this element to the document"""
+    def append_to_document(self, document, parent_level):
+        """
+        Append this element to the document with all heading levels being
+        under the one provided.
+        """
         pass
 
 
@@ -25,7 +28,7 @@ class SingleElementTextWrapper(DocumentElement):
 class StyledText(SingleElementTextWrapper):
     """Text element with specialized styling. e.g. Bold & Italic"""
 
-    def append_to_document(self, document):
+    def append_to_document(self, document, parent_level):
         run = document.paragraphs[len(document.paragraphs) -
                                   1].add_run(self.text.as_str())
         self.add_style_to_run(run)
@@ -42,8 +45,8 @@ class Heading(SingleElementTextWrapper):
         self.level = level
         super().__init__(text)
 
-    def append_to_document(self, document):
-        document.add_heading(self.text.as_str(), level=self.level)
+    def append_to_document(self, document, parent_level):
+        document.add_heading(self.text.as_str(), level=(self.level + parent_level))
 
 
 class Paragraph(DocumentElement):
@@ -56,11 +59,11 @@ class Paragraph(DocumentElement):
     def __init__(self, text_elements):
         self.text_elements = text_elements
 
-    def append_to_document(self, document):
+    def append_to_document(self, document, parent_level):
         # Add a new paragraph
         document.add_paragraph("")
         for item in self.text_elements:
-            item.append_to_document(document)
+            item.append_to_document(document, parent_level)
 
 
 class BoldText(StyledText):
@@ -83,7 +86,7 @@ class Text(DocumentElement):
     def __init__(self, text):
         self.text = text
 
-    def append_to_document(self, document):
+    def append_to_document(self, document, parent_level):
         document.paragraphs[len(document.paragraphs) -
                             1].add_run(self.text)
 

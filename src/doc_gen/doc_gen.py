@@ -4,6 +4,7 @@ Documentation generator from markdown files.
 """
 import sys
 import getopt
+import re
 
 import mistune
 from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text, DocumentElement
@@ -69,7 +70,7 @@ class DocumentBuilder:
         else:
             for item in self.elements['Content']:
                 if isinstance(item, DocumentElement):
-                    item.append_to_document(self.document)
+                    item.append_to_document(self.document, 0)
                 else:
                     raise Exception
 
@@ -77,6 +78,7 @@ class DocumentBuilder:
 
     def _populate_with_template(self):
         """Populates the document with the template content"""
+        heading_match = r"Heading (\d+)"
         for elem in self.template_doc.paragraphs:
             style_name = elem.style.name
             style = self.document.styles[style_name]
@@ -84,9 +86,11 @@ class DocumentBuilder:
             para.style = style
             # Check if should add under this
             if elem.text in self.elements:
+                parent_level = re.match(heading_match, style_name).group(1)
                 for item in self.elements[elem.text]:
                     if isinstance(item, DocumentElement):
-                        item.append_to_document(self.document)
+                        item.append_to_document(
+                            self.document, int(parent_level))
                     else:
                         raise Exception
 
