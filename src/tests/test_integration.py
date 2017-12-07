@@ -15,11 +15,13 @@ sys.path.insert(0, PATH)
 import doc_gen
 
 DEF_STYLE = 'Default Paragraph Font'
+ITALIC_RUN = 'italic'
+BOLD_RUN = 'bold'
 
 
 def test_conversion_from_markdown():
     """High level integration test"""
-    in_path = rel_to_abs_path('./test1.md')
+    in_path = rel_to_abs_path('./single')
     out_path = rel_to_abs_path('./output.docx')
     doc_gen.main(in_path, out_path, None)
     # Now to test
@@ -36,7 +38,7 @@ def test_conversion_from_markdown():
 def test_addition_to_template():
     """High level test using template"""
     template_name = generate_template_document()
-    in_path = rel_to_abs_path('./test1.md')
+    in_path = rel_to_abs_path('./single')
     out_path = rel_to_abs_path('./output.docx')
     template_path = rel_to_abs_path('../../' + template_name)
     doc_gen.main(in_path, out_path, template_path)
@@ -62,39 +64,50 @@ def test_addition_to_template():
     os.remove(template_path)
     os.remove(out_path)
 
-# def test_mutli_addition_to_template():
-#     """
-#     Testing the final form of generator, whereby there is a template generated
-#     that has several sections to be filled and it is filled by the markdown
-#     files within a certain directory.
-#     """
-#     template_name = generate_multi_section_template()
-#     in_path = rel_to_abs_path('./test1.md')
-#     out_path = rel_to_abs_path('./output.docx')
-#     template_path = rel_to_abs_path('../../' + template_name)
-#     doc_gen.main(in_path, out_path, template_path)
 
-#     paragraphs = Document(out_path).paragraphs
-#     assert len(paragraphs) == 7 + NUM_PARAS_TEST1
-#     # Template document
-#     assert_heading(paragraphs[0], 'Template Heading', 'Heading 1')
-#     assert_heading(paragraphs[1], 'References', 'Heading 2')
-#     assert_text_runs(paragraphs[2], 'Reference 1 - Something')
-#     assert_text_runs(paragraphs[3], 'Reference 2 - Another thing')
-#     assert_heading(paragraphs[4], 'Content', 'Heading 2')
+def test_mutli_addition_to_template():
+    """
+    Testing the final form of generator, whereby there is a template generated
+    that has several sections to be filled and it is filled by the markdown
+    files within a certain directory.
+    """
+    template_name = generate_multi_section_template()
+    in_path = rel_to_abs_path('./multi')
+    out_path = rel_to_abs_path('./output.docx')
+    template_path = rel_to_abs_path('../../' + template_name)
+    doc_gen.main(in_path, out_path, template_path)
 
-#     # Added content asserts
-#     assertions_of_test1md(paragraphs, 5, 3)
+    paragraphs = Document(out_path).paragraphs
+    assert len(paragraphs) == 7 + NUM_PARAS_TEST1
+    # Template document
+    assert_heading(paragraphs[0], 'Template Heading', 'Heading 1')
+    assert_heading(paragraphs[1], 'Overview', 'Heading 2')
+    # Added Overview asserts
+    assert_text_runs(
+        paragraphs[2], 'A brief overview of the document that we have.',
+        [DEF_STYLE, ITALIC_RUN, DEF_STYLE])
 
-#     # Template after content
-#     assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 0],
-#                    'Post Content Information', 'Heading 2')
-#     assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 1],
-#                    'Finishing Touches', 'Heading 3')
+    assert_heading(paragraphs[3], 'References', 'Heading 2')
+    assert_text_runs(paragraphs[4], 'Reference 1 - Something')
+    assert_text_runs(paragraphs[5], 'Reference 2 - Another thing')
+    assert_heading(paragraphs[6], 'Content', 'Heading 2')
 
-#     # Clean up
-#     os.remove(template_path)
-#     os.remove(out_path)
+    # Added content asserts
+    assert_text_runs(paragraphs[7], 'Some content about the topic needed to be discussed.',
+        [DEF_STYLE, BOLD_RUN, DEF_STYLE])
+    assert_heading(paragraphs[8], 'Subsection', 'Heading 3')
+    assert_text_runs(paragraphs[9], 'This is a subsection of the content')
+
+    # Template after content
+    assert_heading(paragraphs[10],
+                   'Post Content Information', 'Heading 2')
+    assert_text_runs(paragraphs[11], 'This is some information after the fact')
+    assert_heading(paragraphs[12],
+                   'Finishing Touches', 'Heading 3')
+
+    # Clean up
+    os.remove(template_path)
+    os.remove(out_path)
 
 # Number of paragraphs to be generated from test1.md
 NUM_PARAS_TEST1 = 6
@@ -117,7 +130,7 @@ def assertions_of_test1md(paragraphs, start_index, start_heading_level):
     assert_text_runs(paragraphs[start_index + 3], 'Now a second paragraph')
     assert_text_runs(paragraphs[start_index + 5], 'Let us add some more text.')
     assert_text_runs(paragraphs[start_index + 2], 'Some paragraph text with bold and italics.',
-                     [DEF_STYLE, 'bold', DEF_STYLE, 'italic', DEF_STYLE])
+                     [DEF_STYLE, BOLD_RUN, DEF_STYLE, ITALIC_RUN, DEF_STYLE])
 
 
 def generate_template_document():
@@ -145,7 +158,7 @@ def generate_multi_section_template():
     """
     document = Document()
     document.add_heading('Template Heading', 1)
-    document.add_heading('Overview')
+    document.add_heading('Overview', 2)
     document.add_heading('References', 2)
     document.add_paragraph('Reference 1 - Something')
     document.add_paragraph('Reference 2 - Another thing')

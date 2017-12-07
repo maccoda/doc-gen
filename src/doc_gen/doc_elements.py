@@ -45,8 +45,13 @@ class Heading(SingleElementTextWrapper):
         self.level = level
         super().__init__(text)
 
+    def heading_text(self):
+        """Return the heading text"""
+        return self.text
+
     def append_to_document(self, document, parent_level):
-        document.add_heading(self.text.as_str(), level=(self.level + parent_level))
+        document.add_heading(self.text.as_str(),
+                             level=(self.level + parent_level))
 
 
 class Paragraph(DocumentElement):
