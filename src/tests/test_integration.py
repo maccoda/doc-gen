@@ -78,31 +78,39 @@ def test_mutli_addition_to_template():
     doc_gen.main(in_path, out_path, template_path)
 
     paragraphs = Document(out_path).paragraphs
-    assert len(paragraphs) == 7 + NUM_PARAS_TEST1
+    assert len(paragraphs) == 10 + NUM_PARAS_TEST1
     # Template document
-    assert_heading(paragraphs[0], 'Template Heading', 'Heading 1')
-    assert_heading(paragraphs[1], 'Overview', 'Heading 2')
+    paras = ParagraphIterator(paragraphs)
+    assert_heading(paras.next(), 'Template Heading', 'Heading 1')
+    assert_heading(paras.next(), 'Overview', 'Heading 2')
     # Added Overview asserts
     assert_text_runs(
-        paragraphs[2], 'A brief overview of the document that we have.',
+        paras.next(), 'A brief overview of the document that we have.',
         [DEF_STYLE, ITALIC_RUN, DEF_STYLE])
 
-    assert_heading(paragraphs[3], 'References', 'Heading 2')
-    assert_text_runs(paragraphs[4], 'Reference 1 - Something')
-    assert_text_runs(paragraphs[5], 'Reference 2 - Another thing')
-    assert_heading(paragraphs[6], 'Content', 'Heading 2')
+    assert_heading(paras.next(), 'References', 'Heading 2')
+    assert_text_runs(paras.next(), 'Reference 1 - Something')
+    assert_text_runs(paras.next(), 'Reference 2 - Another thing')
+    assert_heading(paras.next(), 'Content', 'Heading 2')
 
     # Added content asserts
-    assert_text_runs(paragraphs[7], 'Some content about the topic needed to be discussed.',
+    assert_text_runs(paras.next(), 'Some content about the topic needed to be discussed.',
         [DEF_STYLE, BOLD_RUN, DEF_STYLE])
-    assert_heading(paragraphs[8], 'Subsection', 'Heading 3')
-    assert_text_runs(paragraphs[9], 'This is a subsection of the content')
+    assert_heading(paras.next(), 'Subsection', 'Heading 3')
+    assert_text_runs(paras.next(), 'This is a subsection of the content')
+    assert_text_runs(paras.next(), 'With an image of the documentation rendered')
+    # Empty line
+    assert_empty_line(paras.next())
+    # Image
+    assert_image(paras.next())
+
+
 
     # Template after content
-    assert_heading(paragraphs[10],
+    assert_heading(paras.next(),
                    'Post Content Information', 'Heading 2')
-    assert_text_runs(paragraphs[11], 'This is some information after the fact')
-    assert_heading(paragraphs[12],
+    assert_text_runs(paras.next(), 'This is some information after the fact')
+    assert_heading(paras.next(),
                    'Finishing Touches', 'Heading 3')
 
     # Clean up
@@ -149,6 +157,20 @@ def generate_template_document():
     return doc_name
 
 
+class ParagraphIterator:
+    """Iterator over the document paragraphs to remove hardcoded indexes"""
+
+    def __init__(self, paras):
+        self.curr = 0
+        self.paragraphs = paras
+
+    def next(self):
+        """Get next paragraph"""
+        result = self.paragraphs[self.curr]
+        self.curr += 1
+        return result
+
+
 def generate_multi_section_template():
     """
     Generates a mock template DOCX document with sections to be filled being the
@@ -186,3 +208,13 @@ def assert_text_runs(text_run, text, run_styles=None):
         assert text_run.runs[0].style.name == DEF_STYLE
     else:
         assert len(text_run.runs) == len(run_styles)
+
+def assert_image(image):
+    """Assert that the provided element is an image"""
+    # Don't really know what is going on here
+    assert len(image.runs) == 1
+
+def assert_empty_line(element):
+    """Assert that the provided element is an empty line"""
+    assert element.text == ''
+    assert len(element.runs) == 0

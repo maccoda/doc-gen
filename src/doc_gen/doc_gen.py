@@ -8,7 +8,7 @@ import re
 import os
 
 import mistune
-from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text, DocumentElement
+from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text, DocumentElement, Image
 from docx import Document
 
 
@@ -20,6 +20,11 @@ class IdentityRenderer(mistune.Renderer):
 
     def __init__(self, **kwargs):
         super().__init__()
+        self.dir_name = ""
+
+    def in_file_directory(self, dir_name):
+        """Sets the directory for the current markdown file"""
+        self.dir_name = dir_name
 
     def placeholder(self):
         return []
@@ -39,6 +44,9 @@ class IdentityRenderer(mistune.Renderer):
     def text(self, text):
         return [Text(text)]
 
+    def image(self, src, title, text):
+        return [Image(self.dir_name + src)]
+
 
 class DocumentBuilder:
     """Builder of the DOCX document from DocumentElements"""
@@ -52,6 +60,7 @@ class DocumentBuilder:
             if cur_file.endswith('.md'):
                 with open(md_dir + '/' + cur_file) as in_file:
                     # Parse and convert the md files
+                    doc_render.in_file_directory(md_dir + '/')
                     elem_list = mistune.Markdown(
                         renderer=doc_render).output(in_file.read())
                     head = elem_list[0]
@@ -116,6 +125,7 @@ def print_help():
     print("doc_gen.py -i <input> -o <output>")
     print("-i,--input\t name of directory containing Markdown files to convert")
     print("-o,--output\t name to write output DOCX file to (with file extension)")
+    print("-t, --template\t name of template DOCX file to read")
 
 
 def parse_args(args):

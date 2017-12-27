@@ -2,7 +2,7 @@
 Module containing all of parsed elements from the Markdown file and the relevant
 mappings to the DOCX types
 """
-
+import os
 
 class DocumentElement:
     """Single DOCX document element. Capable of appending itself to a document"""
@@ -98,3 +98,12 @@ class Text(DocumentElement):
     def as_str(self):
         """Returns the string representation of the this Text element"""
         return self.text
+
+class Image(DocumentElement):
+    """Image element"""
+
+    def __init__(self, image_path):
+        self.path = os.path.abspath(image_path)
+
+    def append_to_document(self, document, parent_level):
+        document.add_picture(self.path)
