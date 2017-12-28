@@ -8,7 +8,8 @@ import re
 import os
 
 import mistune
-from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text, DocumentElement, Image
+from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text
+from doc_elements import DocumentElement, Image, Link
 from docx import Document
 
 
@@ -46,6 +47,9 @@ class IdentityRenderer(mistune.Renderer):
 
     def image(self, src, title, text):
         return [Image(self.dir_name + src)]
+
+    def link(self, link, title, text):
+        return [Link(link, text)]
 
 
 class DocumentBuilder:
@@ -97,7 +101,8 @@ class DocumentBuilder:
                     # heading 1 and match the design convention
                     item.append_to_document(self.document, -1)
                 else:
-                    raise Exception
+                    print(item)
+                    raise Exception("Unhandled document element")
 
         self.document.save(out_file_name)
 
@@ -167,7 +172,6 @@ def main(input_dir, output_file_name, template_name):
     """Main method taking the markdown file and creating DOCX file"""
     doc_builder = DocumentBuilder(input_dir, template_name)
     doc_builder.create(output_file_name)
-
 
 
 if __name__ == '__main__':

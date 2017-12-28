@@ -58,7 +58,8 @@ def test_addition_to_template():
     # Template after content
     assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 0],
                    'Post Content Information', 'Heading 2')
-    assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 1], 'Finishing Touches', 'Heading 3')
+    assert_heading(paragraphs[5 + NUM_PARAS_TEST1 + 1],
+                   'Finishing Touches', 'Heading 3')
 
     # Clean up
     os.remove(template_path)
@@ -78,7 +79,7 @@ def test_mutli_addition_to_template():
     doc_gen.main(in_path, out_path, template_path)
 
     paragraphs = Document(out_path).paragraphs
-    assert len(paragraphs) == 10 + NUM_PARAS_TEST1
+    assert len(paragraphs) == 11 + NUM_PARAS_TEST1
     # Template document
     paras = ParagraphIterator(paragraphs)
     assert_heading(paras.next(), 'Template Heading', 'Heading 1')
@@ -88,6 +89,9 @@ def test_mutli_addition_to_template():
         paras.next(), 'A brief overview of the document that we have.',
         [DEF_STYLE, ITALIC_RUN, DEF_STYLE])
 
+    # Hyperlink
+    assert_hyperlink(paras.next(), 'My link', 'http://google.com')
+
     assert_heading(paras.next(), 'References', 'Heading 2')
     assert_text_runs(paras.next(), 'Reference 1 - Something')
     assert_text_runs(paras.next(), 'Reference 2 - Another thing')
@@ -95,16 +99,15 @@ def test_mutli_addition_to_template():
 
     # Added content asserts
     assert_text_runs(paras.next(), 'Some content about the topic needed to be discussed.',
-        [DEF_STYLE, BOLD_RUN, DEF_STYLE])
+                     [DEF_STYLE, BOLD_RUN, DEF_STYLE])
     assert_heading(paras.next(), 'Subsection', 'Heading 3')
     assert_text_runs(paras.next(), 'This is a subsection of the content')
-    assert_text_runs(paras.next(), 'With an image of the documentation rendered')
-    # Empty line
-    assert_empty_line(paras.next())
+    assert_text_runs(
+        paras.next(), 'With an image of the documentation rendered')
+
     # Image
+    assert_empty_line(paras.next())
     assert_image(paras.next())
-
-
 
     # Template after content
     assert_heading(paras.next(),
@@ -117,8 +120,10 @@ def test_mutli_addition_to_template():
     os.remove(template_path)
     os.remove(out_path)
 
+
 # Number of paragraphs to be generated from test1.md
 NUM_PARAS_TEST1 = 6
+
 
 def assertions_of_test1md(paragraphs, start_index, start_heading_level):
     """
@@ -128,7 +133,8 @@ def assertions_of_test1md(paragraphs, start_index, start_heading_level):
     be one below the parent section.
     """
     # Check the headings
-    assert_heading(paragraphs[start_index + 0], 'Heading 1', 'Heading ' + str(start_heading_level))
+    assert_heading(paragraphs[start_index + 0],
+                   'Heading 1', 'Heading ' + str(start_heading_level))
     assert_heading(paragraphs[start_index + 1], 'Heading 2',
                    'Heading ' + str(start_heading_level + 1))
     assert_heading(paragraphs[start_index + 4],
@@ -209,12 +215,19 @@ def assert_text_runs(text_run, text, run_styles=None):
     else:
         assert len(text_run.runs) == len(run_styles)
 
+
 def assert_image(image):
     """Assert that the provided element is an image"""
     # Don't really know what is going on here
     assert len(image.runs) == 1
 
+
 def assert_empty_line(element):
     """Assert that the provided element is an empty line"""
     assert element.text == ''
     assert len(element.runs) == 0
+
+def assert_hyperlink(element, text, link):
+    """Assert that the provided element is a hyperlink with the provided text and link location"""
+    assert element.part.rels['rId9'].target_ref == link
+    assert element._p[0][0].text == text

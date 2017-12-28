@@ -3,6 +3,7 @@ Module containing all of parsed elements from the Markdown file and the relevant
 mappings to the DOCX types
 """
 import os
+import docx
 
 class DocumentElement:
     """Single DOCX document element. Capable of appending itself to a document"""
@@ -107,3 +108,29 @@ class Image(DocumentElement):
 
     def append_to_document(self, document, parent_level):
         document.add_picture(self.path)
+
+class Link(SingleElementTextWrapper):
+    """Hyperlink element"""
+
+    def __init__(self, url, text):
+        self.url = url
+        super().__init__(text)
+
+    def append_to_document(self, document, parent_level):
+        paragraph = document.paragraphs[len(document.paragraphs) - 1]
+
+        part = paragraph.part
+        r_id = part.relate_to(
+            self.url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+        print(r_id)
+        hyperlink = docx.oxml.shared.OxmlElement('w:hyperlink')
+        hyperlink.set(docx.oxml.shared.qn('r:id'), r_id,)
+
+        new_run = docx.oxml.shared.OxmlElement('w:r')
+        rPr = docx.oxml.shared.OxmlElement('w:rPr')
+
+        new_run.append(rPr)
+        new_run.text = self.text.as_str()
+        hyperlink.append(new_run)
+
+        paragraph._p.append(hyperlink)
