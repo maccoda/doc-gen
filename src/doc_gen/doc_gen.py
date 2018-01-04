@@ -8,54 +8,9 @@ import re
 import os
 
 import mistune
-from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text
-from doc_elements import DocumentElement, Image, Link, WrittenList, ListElement
+from doc_elements import *
 from docx import Document
-
-
-class IdentityRenderer(mistune.Renderer):
-    """
-    Renderer which just returns a typed object of the arguments for later
-    processing to construct the DOCX document
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.dir_name = ""
-
-    def in_file_directory(self, dir_name):
-        """Sets the directory for the current markdown file"""
-        self.dir_name = dir_name
-
-    def placeholder(self):
-        return []
-
-    def header(self, text, level, raw=None):
-        return [Heading(level, text)]
-
-    def paragraph(self, text):
-        return [Paragraph(text)]
-
-    def double_emphasis(self, text):
-        return [BoldText(text)]
-
-    def emphasis(self, text):
-        return [ItalicText(text)]
-
-    def text(self, text):
-        return [Text(text)]
-
-    def image(self, src, title, text):
-        return [Image(self.dir_name + src)]
-
-    def link(self, link, title, text):
-        return [Link(link, text)]
-
-    def list(self, body, ordered=True):
-        return [WrittenList(body, ordered)]
-
-    def list_item(self, text):
-        return [ListElement(text)]
+from renderer import IdentityRenderer
 
 
 class DocumentBuilder:
@@ -122,7 +77,7 @@ class DocumentBuilder:
             para.style = style
             # Check if should add under this
             if elem.text in self.elements:
-                print("Adding for " + elem.text)
+                print('Adding for [' + elem.text + '] to document')
                 parent_level = re.match(heading_match, style_name).group(1)
                 for item in self.elements[elem.text]:
                     if isinstance(item, DocumentElement):

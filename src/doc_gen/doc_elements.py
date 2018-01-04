@@ -139,14 +139,13 @@ class Link(SingleElementTextWrapper):
         paragraph._p.append(hyperlink)
 
 class WrittenList(DocumentElement):
+    """Ordered or unordered list containing collection of ListElements"""
 
     def __init__(self, elements, ordered):
         self.elements = elements
         self.ordered = ordered
 
     def append_to_document(self, document, parent_level):
-        print("list")
-
         for elem in self.elements:
             paragraph = document.add_paragraph('')
             if self.ordered:
@@ -156,18 +155,87 @@ class WrittenList(DocumentElement):
             elem.append_to_document(document, parent_level)
 
 
-
+# TODO Look into if we can make this single text element
 class ListElement(DocumentElement):
+    """Single element in a list"""
 
     def __init__(self, text):
         # Element does not need to be text, may have style or link
         self.text = text
 
     def append_to_document(self, document, parent_level):
-        print("list element")
         if len(self.text) > 1:
             print("List element with more than one item")
             print(self.text)
         self.text[0].append_to_document(document, parent_level)
+
+class Table(DocumentElement):
+    """Root element for a table"""
+
+    def __init__(self, header, content):
+        self.header = header[0]
+        self.content = content
+
+    def append_to_document(self, document, parent_level):
+        if isinstance(self.header, TableRow):
+            cols = self.header.number_of_columns()
+            table = document.add_table(0, cols, 'Table Grid')
+            # Add the header
+            header_row = self.header.add_heading_row(table)
+            for elem in self.content:
+                if isinstance(elem, TableRow):
+                    elem.add_row(table)
+                else:
+                    raise Exception('This table is not filled with rows...')
+        else:
+            raise Exception('This table has headers that are not a table row')
+
+
+class TableRow(DocumentElement):
+    """Single row of a table"""
+
+    def __init__(self, elements):
+        self.elements = elements
+
+    def number_of_columns(self):
+        """Returns the number of columns in this row"""
+        return len(self.elements)
+
+    def add_heading_row(self, table):
+        """Adds a heading row to the provided table"""
+        self._write_row(table, True)
+
+    def add_row(self, table):
+        """Adds a text row to the provided table"""
+        self._write_row(table, False)
+
+    def _write_row(self, table, heading):
+        """
+        Writes a row to the provided table and uses heading boolean to determine if should be
+        written with heading style or not.
+        """
+        if heading:
+            style = 'Strong'
+        else:
+            style = None
+        row = table.add_row()
+        for i, cell in enumerate(self.elements):
+            if isinstance(cell, TableCell):
+                cell.write_to_cell(row.cells[i], style)
+        return row
+
+
+
+class TableCell(SingleElementTextWrapper):
+    """Singular cell within a table"""
+
+    def __init__(self, text):
+        super().__init__(text)
+
+    def write_to_cell(self, cell, style):
+        """Write self to the cell provided with the given style"""
+        cell.text = self.text.as_str()
+        if style:
+            cell.paragraphs[0].runs[0].style = style
 
 
