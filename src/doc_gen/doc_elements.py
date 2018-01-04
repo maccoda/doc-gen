@@ -5,6 +5,7 @@ mappings to the DOCX types
 import os
 import docx
 
+
 class DocumentElement:
     """Single DOCX document element. Capable of appending itself to a document"""
 
@@ -22,7 +23,7 @@ class SingleElementTextWrapper(DocumentElement):
     def __init__(self, text):
         # Expect only a single Text element
         if len(text) > 1:
-            raise Exception
+            raise Exception("Single element text wrapper with more than single element")
         self.text = text[0]
 
 
@@ -67,7 +68,7 @@ class Paragraph(DocumentElement):
 
     def append_to_document(self, document, parent_level):
         # Add a new paragraph
-        document.add_paragraph("")
+        document.add_paragraph('')
         for item in self.text_elements:
             item.append_to_document(document, parent_level)
 
@@ -100,6 +101,7 @@ class Text(DocumentElement):
         """Returns the string representation of the this Text element"""
         return self.text
 
+
 class Image(DocumentElement):
     """Image element"""
 
@@ -108,6 +110,7 @@ class Image(DocumentElement):
 
     def append_to_document(self, document, parent_level):
         document.add_picture(self.path)
+
 
 class Link(SingleElementTextWrapper):
     """Hyperlink element"""
@@ -122,7 +125,7 @@ class Link(SingleElementTextWrapper):
         part = paragraph.part
         r_id = part.relate_to(
             self.url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
-        print(r_id)
+
         hyperlink = docx.oxml.shared.OxmlElement('w:hyperlink')
         hyperlink.set(docx.oxml.shared.qn('r:id'), r_id,)
 
@@ -134,3 +137,37 @@ class Link(SingleElementTextWrapper):
         hyperlink.append(new_run)
 
         paragraph._p.append(hyperlink)
+
+class WrittenList(DocumentElement):
+
+    def __init__(self, elements, ordered):
+        self.elements = elements
+        self.ordered = ordered
+
+    def append_to_document(self, document, parent_level):
+        print("list")
+
+        for elem in self.elements:
+            paragraph = document.add_paragraph('')
+            if self.ordered:
+                paragraph.style = 'List Number'
+            else:
+                paragraph.style = 'List Bullet'
+            elem.append_to_document(document, parent_level)
+
+
+
+class ListElement(DocumentElement):
+
+    def __init__(self, text):
+        # Element does not need to be text, may have style or link
+        self.text = text
+
+    def append_to_document(self, document, parent_level):
+        print("list element")
+        if len(self.text) > 1:
+            print("List element with more than one item")
+            print(self.text)
+        self.text[0].append_to_document(document, parent_level)
+
+

@@ -9,7 +9,7 @@ import os
 
 import mistune
 from doc_elements import Heading, Paragraph, BoldText, ItalicText, Text
-from doc_elements import DocumentElement, Image, Link
+from doc_elements import DocumentElement, Image, Link, WrittenList, ListElement
 from docx import Document
 
 
@@ -50,6 +50,12 @@ class IdentityRenderer(mistune.Renderer):
 
     def link(self, link, title, text):
         return [Link(link, text)]
+
+    def list(self, body, ordered=True):
+        return [WrittenList(body, ordered)]
+
+    def list_item(self, text):
+        return [ListElement(text)]
 
 
 class DocumentBuilder:
@@ -116,12 +122,15 @@ class DocumentBuilder:
             para.style = style
             # Check if should add under this
             if elem.text in self.elements:
+                print("Adding for " + elem.text)
                 parent_level = re.match(heading_match, style_name).group(1)
                 for item in self.elements[elem.text]:
                     if isinstance(item, DocumentElement):
                         item.append_to_document(
                             self.document, int(parent_level) - 1)
                     else:
+                        print(item)
+                        print(self.elements[elem.text])
                         raise Exception
 
 
