@@ -77,7 +77,7 @@ class DocumentBuilder:
             para.style = style
             # Check if should add under this
             if elem.text in self.elements:
-                print('Adding for [' + elem.text + '] to document')
+                print('Adding section [' + elem.text + '] to document')
                 parent_level = re.match(heading_match, style_name).group(1)
                 for item in self.elements[elem.text]:
                     if isinstance(item, DocumentElement):

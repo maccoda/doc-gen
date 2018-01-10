@@ -23,7 +23,8 @@ class SingleElementTextWrapper(DocumentElement):
     def __init__(self, text):
         # Expect only a single Text element
         if len(text) > 1:
-            raise Exception("Single element text wrapper with more than single element")
+            raise Exception(
+                "Single element text wrapper with more than single element")
         self.text = text[0]
 
 
@@ -91,7 +92,8 @@ class Text(DocumentElement):
     """Basic text element, containing only plain string"""
 
     def __init__(self, text):
-        self.text = text
+        # Trim new lines as they have no value in Markdown but affect docx
+        self.text = str(text).replace('\n', ' ')
 
     def append_to_document(self, document, parent_level):
         document.paragraphs[len(document.paragraphs) -
@@ -138,6 +140,7 @@ class Link(SingleElementTextWrapper):
 
         paragraph._p.append(hyperlink)
 
+
 class WrittenList(DocumentElement):
     """Ordered or unordered list containing collection of ListElements"""
 
@@ -155,7 +158,6 @@ class WrittenList(DocumentElement):
             elem.append_to_document(document, parent_level)
 
 
-# TODO Look into if we can make this single text element
 class ListElement(DocumentElement):
     """Single element in a list"""
 
@@ -168,6 +170,7 @@ class ListElement(DocumentElement):
             print("List element with more than one item")
             print(self.text)
         self.text[0].append_to_document(document, parent_level)
+
 
 class Table(DocumentElement):
     """Root element for a table"""
@@ -225,7 +228,6 @@ class TableRow(DocumentElement):
         return row
 
 
-
 class TableCell(SingleElementTextWrapper):
     """Singular cell within a table"""
 
@@ -237,5 +239,3 @@ class TableCell(SingleElementTextWrapper):
         cell.text = self.text.as_str()
         if style:
             cell.paragraphs[0].runs[0].style = style
-
-

@@ -6,6 +6,7 @@ import mistune
 
 from doc_elements import *
 
+
 class IdentityRenderer(mistune.Renderer):
     """
     Renderer which just returns a typed object of the arguments for later
@@ -51,14 +52,9 @@ class IdentityRenderer(mistune.Renderer):
         return [ListElement(text)]
 
     def table(self, header, body):
-        print('table')
-        print(header)
-        print(body)
         return [Table(header, body)]
 
     def table_row(self, content):
-        print("row")
-        print(content)
         return [TableRow(content)]
 
     def table_cell(self, content, **flags):
